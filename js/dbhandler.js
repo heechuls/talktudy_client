@@ -152,6 +152,7 @@ var DBHandler = {
                 if (snapshot.exists()) {
                     var remained_class = snapshot.val();
                     userRef.set(--remained_class, done);
+                    ref.child(userid + "/" + classid).update({remained_class:remained_class});
                 }
             });
 
@@ -163,6 +164,7 @@ var DBHandler = {
                 if (snapshot.exists()) {
                     var remained_class = snapshot.val();
                     userRef.set(++remained_class, done);
+                    ref.child(userid + "/" + classid).update({remained_class:remained_class});
                 }
             });
         }
@@ -367,21 +369,23 @@ var DBHandler = {
             ret(retVal);
         });
     },
-    getActivityList: function (userid, done) {
+    getActivityList: function (userid, done, done2) {
         var ref = firebase.database().ref().child("/study_activity/" + userid);
         ref.orderByValue().once("value", function (allSnapshot) {
             var retVal = new Array();
             var bToday = false;
             allSnapshot.forEach(function(snapshot) {
                 if(snapshot.key == new Date().yyyymmdd())
-                    bToday = true;
+                    isToday = true;
                 var item = {
                     classid: snapshot.key,
-                    purchase_cost: snapshot.val().purchase_cost,
+                    purchase_cost: snapshot.val().purchase_cost === undefined ? 0 : snapshot.val().purchase_cost,
                     remained_class: snapshot.val().remained_class,
                     class_participation : snapshot.val().class_participation,
                     phonetalk_participation : snapshot.val().phonetalk_participation,
-                    shop_item: new Array()
+                    shop_item: new Array(),
+                    class_participation_text : snapshot.val().class_participation === 1 ? "스터디 참여" + " (" + snapshot.val().remained_class + "회 남음)" : "스터디 불참",
+                    phonetalk_participation_text : snapshot.val().phonetalk_participation === 1 ? "전화영어 참여" : "전화영어 불참"
                 };
                 var itemRef = ref.child(snapshot.key + "/shop_item/");
                 itemRef.orderByValue().once("value", function (shop_snapshot) {
@@ -390,20 +394,23 @@ var DBHandler = {
                             name:shop_snapshot.key,
                             count:shop_snapshot.val()
                         });
-                        //console.log("아이템 : " + shop_snapshot.key);
-                        //console.log("카운트 : " + shop_snapshot.val());
+                        console.log("아이템 : " + shop_snapshot.key);
+                        console.log("카운트 : " + shop_snapshot.val());
                     });
+                    if(done2 !== null)
+                        done2(retVal);
+
                 });
                 //console.log(item);
                 retVal.push(item);
             });
             if(done != null){
-                if(bToday == false){
+                if(isToday == false){
                     var today = {
                         classid: new Date().yyyymmdd(),
                         purchase_cost: 0,
-                        class_participation : 0,
-                        phonetalk_participation : 0,
+                        class_participation : -1,
+                        phonetalk_participation : -1,
                         shop_item: new Array()
                     }
                     retVal.push(today);
