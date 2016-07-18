@@ -136,7 +136,11 @@ angular.module('starter', ['ionic','ionic.service.core', 'starter.controllers', 
       templateUrl: 'templates/guide/talk_main.html',
       controller: 'TalkMainCtrl'
     })
-    ;
+    .state('userprofile', {
+      url: '/userprofile/:userid',
+      templateUrl: 'templates/userprofile.html',
+      controller: 'UserProfileCtrl'
+    });
 
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/login');

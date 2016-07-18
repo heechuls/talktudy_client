@@ -333,6 +333,27 @@ var DBHandler = {
                 done();
         });
     },
+    getUserInfo2: function (userid, done) {
+        var ref = firebase.database().ref().child('/user/' + userid);
+        ref.once("value", function (dataSnapshop) {
+            var user = {};
+            if(dataSnapshop.exists()){
+                console.log(dataSnapshop.val());
+                user.userid = userid;
+                user.email = dataSnapshop.email;
+                user.gender = dataSnapshop.val().gender;
+                user.name = dataSnapshop.val().name;
+                user.phoneno = dataSnapshop.val().phoneno;
+                user.speaking_level = dataSnapshop.val().speaking_level;
+                user.pronunciation_level = dataSnapshop.val().pronunciation_level;
+                user.email = dataSnapshop.val().email;
+                user.remained_purchase = dataSnapshop.val().remained_purchase;
+                user.remained_class = dataSnapshop.val().remained_class;
+            }
+            if(done != null)            
+                done(user);
+        });
+    },
     setStudyResultItem: function(userid, studyid, name){
         var update = {};
         update['/study_result/' + userid + "/" + studyid] = {
@@ -462,8 +483,8 @@ var DBHandler = {
                             name:shop_snapshot.key,
                             count:shop_snapshot.val()
                         });
-                        console.log("아이템 : " + shop_snapshot.key);
-                        console.log("카운트 : " + shop_snapshot.val());
+                        //console.log("아이템 : " + shop_snapshot.key);
+                        //console.log("카운트 : " + shop_snapshot.val());
                     });
                     if(done2 !== null)
                         done2(retVal);
@@ -482,7 +503,6 @@ var DBHandler = {
                         shop_item: new Array()
                     }
                     retVal.push(today);
-                    console.log("added");
                 }
                 done(retVal);
             }
@@ -503,6 +523,28 @@ var DBHandler = {
     saveDeviceToken: function(userid, token){
         var userRef = firebase.database().ref('/user/' + userid);
         userRef.update(token);
+    },
+    retrieveAllUserList(done){
+        var ref = firebase.database().ref().child('/user/');
+        ref.once("value", function (allUserSnapshop) {
+            var retVal = new Array();
+            allUserSnapshop.forEach(function (snapshot) {
+                // Will be called with a messageSnapshot for each child under the /messages/ node
+                console.log(snapshot.val());
+                var user = {
+                    userid : snapshot.key,
+                    gender : snapshot.val().gender == 0 ? "img/male.png" : "img/femail.png",
+                    name : snapshot.val().name,
+                    speaking_level : snapshot.val().speaking_level,
+                    pronunciation_level : snapshot.val().pronunciation_level,
+                    rate_passed : snapshot.val().rate_passed == undefined ? 0 : snapshot.val().rate_passed,
+                    rate_failed : snapshot.val().rate_failed == undefined ? 0 : snapshot.val().rate_failed,
+                }
+                retVal.push(user);
+            });
+            if(done != null)            
+                done(retVal);
+        });
     }
 };
 
