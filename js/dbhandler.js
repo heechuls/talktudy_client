@@ -114,7 +114,6 @@ var DBHandler = {
     rateStudyItem: function(userid, name, rate){
         var ref = firebase.database().ref().child('/study_result/' +  userid);
 
-
         ref.orderByChild("name").equalTo(name).on("child_added", function (snapshot) {
             var study_result = firebase.database().ref().child('/study_result/');
             var update = {};
@@ -124,6 +123,38 @@ var DBHandler = {
             study_result.update(update);
         });
     },
+
+    /*
+            var userRef = firebase.database().ref('/user/' + userid);
+        userRef.child("rate_passed").once("value", function (snapshot_passed)){
+            var rate_passed = 0;
+            if(snapshot_passed.exists())
+                rate_passed = snapshot.val();
+            userRef.child("rate_failed").once("value", function (snapshot_failed)){
+                var rate_failed = 0;
+                if(snapshot_failed.exists())
+                    rate_failed = snapshot.val();
+                    if(rate === RATE_PASSED){
+                                                
+                    }
+                    else if(rate === RATE_FAILED){
+
+                    }
+
+                var update = {
+                    rate_passed : rate_passed,
+                    rate_failed : rate_failed
+                }
+                user.update(update);
+            }                        
+        }
+        if(rate === RATE_PASSED){
+            
+        }
+        else if(rate === RATE_FAILED){
+
+        }
+    */
 
     buyItem: function(userid, classid, shop_item_name, purchased_count, done)
     {
@@ -226,7 +257,7 @@ var DBHandler = {
                     result:messageSnapshot.val().result,
                     date:messageSnapshot.val().date
                 }
-                if(val.result ==1){ //Passed
+                if(val.result == RATE_PASSED){ //Passed
                     var reviewedDate = new Date(messageSnapshot.val().date)
                     reviewedDate.setDate(reviewedDate.getDate() + 15);               
 
@@ -234,17 +265,54 @@ var DBHandler = {
                         val.path = "img/pass.png";
                     else val.path = "img/female.png";
                 }
-                else if(val.result ==2) //Failed
+                else if(val.result == RATE_FAILED) //Failed
                     val.path = "img/fail.png";
-                //if(val.result ==0) //Failed
-                //    val.path = "/img/fail.png";
-                //else Not Review is 0
+
                 retVal.push(val);
             });
             if(done != null)
                 done(retVal);
         });
     },
+    getStudyResultCount: function (userid, done) {
+        var ref = firebase.database().ref().child('/study_result/' + userid);
+        var pass = 0, pass_15days = 0, fail = 0, unreview = 0;
+        ref.once("value", function (allMessagesSnapshot) {
+
+            allMessagesSnapshot.forEach(function (messageSnapshot) {
+                var today = new Date();
+                var result = messageSnapshot.val().result;
+
+                if(result == RATE_PASSED){ //Passed
+                    var reviewedDate = new Date(messageSnapshot.val().date)
+                    reviewedDate.setDate(reviewedDate.getDate() + 15);               
+
+                    if(today < reviewedDate)
+                        pass++;
+                    else pass_15days++;
+                }
+                else if(result == RATE_FAILED) //Failed
+                    fail++;
+                else if(result == RATE_UNREVIEWED)
+                    unreview++;
+
+            });
+            if(done != null)
+                done(pass, pass_15days, fail, unreview);
+        });
+    },
+    updateUserStudyResultStat : function (userid){
+        this.getStudyResultCount(userid, function(pass, pass_15days, fail, unreview){
+            var userRef = firebase.database().ref().child('/user/' + userid);
+            var update = {
+                rate_passed : pass + pass_15days,
+                rate_failed : fail,
+                rate_unreviewed : unreview
+            }
+            userRef.update(update);
+        });
+    },
+
     getUserInfo: function (userid, done) {
         var ref = firebase.database().ref().child('/user/' + userid);
         ref.once("value", function (dataSnapshop) {
@@ -373,7 +441,7 @@ var DBHandler = {
         var ref = firebase.database().ref().child("/study_activity/" + userid);
         ref.orderByValue().once("value", function (allSnapshot) {
             var retVal = new Array();
-            var bToday = false;
+            var isToday = false;
             allSnapshot.forEach(function(snapshot) {
                 if(snapshot.key == new Date().yyyymmdd())
                     isToday = true;
@@ -431,6 +499,10 @@ var DBHandler = {
                 ref.update(update, done);
             }
         });
+    },
+    saveDeviceToken: function(userid, token){
+        var userRef = firebase.database().ref('/user/' + userid);
+        userRef.update(token);
     }
 };
 

@@ -30,7 +30,7 @@ angular.module('starter.services', [])
   var users = [{
     id: 0,
     name: "Hee Chul",
-    gender: "/img/female.png",
+    gender: "img/female.png",
     speaking: 5,
     pronunciation: 3,
     passed: 7,
@@ -38,7 +38,7 @@ angular.module('starter.services', [])
   }, {
     id: 1,
     name: "Hee Jin",
-    gender: "/img/male.png",
+    gender: "img/male.png",
     speaking: 5,
     pronunciation: 3,
     passed: 7,

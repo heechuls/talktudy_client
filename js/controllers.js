@@ -33,6 +33,7 @@ angular.module('starter.controllers', [])
                 console.log($scope.oModal1.choice);
                 DBHandler.setStudyResult($scope.myprofile.userid, $scope.oModal1.study_item_name, $scope.oModal1.choice, function () {
                     loadData();
+                    DBHandler.updateUserStudyResultStat(MyProfile.userid);
                 });
             }
             else {
@@ -330,6 +331,7 @@ function init(StudyItems, ShopItems, done) {
     DBHandler.getUserInfo("shin", function () {
         //Need to perform in Admin side when a user is registered
         //DBHandler.setStudyResultItems(MyProfile.userid);
+        DBHandler.saveDeviceToken(MyProfile.userid, MyProfile.token);
         DBHandler.getStudyResult(MyProfile.userid, function (retval) {
             StudyItems.List = retval.slice(0); //Copying Array
             if (done != null)
