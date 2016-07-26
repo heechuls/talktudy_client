@@ -73,7 +73,14 @@ var DBHandler = {
             else done(false);
         });
     },
-
+    isUserValid: function(userid, done){
+        firebase.database().ref().child('/user/'+userid).once('value', function(snapshot){
+            if(snapshot.exists()){
+                done(snapshot.val().valid);                
+            }
+            else done(USER_NONE);
+        });        
+    },
     addShopItem: function(name, price){
         var newPushKey = firebase.database().ref().child('shop_item').push().key;
         var update = {};
@@ -153,7 +160,12 @@ var DBHandler = {
         if(isParticipate){
             update[userid + '/' + classid + '/class_participation/'] = 1;
             var item = {
-                name : MyProfile.name
+                name : MyProfile.name,
+                gender : MyProfile.gender,
+                speaking_level : MyProfile.speaking_level,
+                pronunciation_level : MyProfile.pronunciation_level,
+                rate_failed : MyProfile.rate_failed == undefined ? 0 : MyProfile.rate_failed,
+                rate_passed : MyProfile.rate_passed == undefined ? 0 : MyProfile.rate_passed
             }
             listRef.child(userid).update(item);
             userRef.once('value', function (snapshot) {
@@ -306,6 +318,8 @@ var DBHandler = {
                 MyProfile.remained_purchase = dataSnapshop.val().remained_purchase;
                 MyProfile.remained_class = dataSnapshop.val().remained_class;
                 MyProfile.device_type = dataSnapshop.val().device_type;
+                MyProfile.rate_failed = dataSnapshop.val().rate_failed;
+                MyProfile.rate_passed = dataSnapshop.val().rate_passed;
             }
             if(done != null)            
                 done();
@@ -511,6 +525,27 @@ var DBHandler = {
             var retVal = new Array();
             allUserSnapshop.forEach(function(snapshot) {
                 // Will be called with a messageSnapshot for each child under the /messages/ node
+                console.log(snapshot.val());
+                var user = {
+                    userid : snapshot.key,
+                    gender : snapshot.val().gender == 0 ? "img/male.png" : "img/female.png",
+                    name : snapshot.val().name,
+                    speaking_level : snapshot.val().speaking_level,
+                    pronunciation_level : snapshot.val().pronunciation_level,
+                    rate_passed : snapshot.val().rate_passed == undefined ? 0 : snapshot.val().rate_passed,
+                    rate_failed : snapshot.val().rate_failed == undefined ? 0 : snapshot.val().rate_failed,
+                }
+                retVal.push(user);
+            });
+            if(done != null)            
+                done(retVal);
+        });
+    },
+    getClassParticipants: function(classid, done){
+        var ref = firebase.database().ref().child('/class_participant/' + classid);
+        ref.once("value", function(allUserSnapshop) {
+            var retVal = new Array();
+            allUserSnapshop.forEach(function(snapshot) {
                 console.log(snapshot.val());
                 var user = {
                     userid : snapshot.key,

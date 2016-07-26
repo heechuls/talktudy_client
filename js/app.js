@@ -5,9 +5,9 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers', 'starter.services'])
+angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers', 'starter.services'/* , 'ngCordova'*/])
 
-  .run(function ($ionicPlatform) {
+  .run(function ($ionicPlatform, $rootScope) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -26,18 +26,32 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
           var payload = notification.payload;
           console.log("Push Received : ");
           console.log(notification, payload);
+
+          if(ionic.Platform.isIOS()){
+              var code = notification["_raw"]["additionalData"]["code"];
+              var message = notification["_raw"]["message"];
+              var body = notification["_raw"]["additionalData"]["body"];
+              $rootScope.$broadcast("onNotification", {code : code, message : message, body : body});
+          }
+          else {
+
+          }
         },
         "onRegister": function (data) {
           console.log(data.token);
         },
         "pluginConfig": {
-          "ios": {
-            "badge": true,
-            "sound": true
-          },
-          "android": {
-            "iconColor": "#343434"
-          }
+            ios: {
+              alert: true,
+              badge: true,
+              sound: true
+            },
+            android: {
+              sound: true,
+              vibrate: true,
+              forceShow: true,
+              iconColor: "#601dc2"
+            },
         }
       });
       console.log("Push Register");
@@ -77,7 +91,15 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
           }
         }
       })
-
+    .state('tab.joiner', {
+      url: '/joiner',
+      views: {
+        'tab-profile': {
+          templateUrl: 'templates/admin-joiner.html',
+          controller: 'JoinerListCtrl'
+        }
+      }
+    })
       .state('tab.activities', {
         url: '/activities',
         views: {
@@ -87,16 +109,6 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
           }
         }
       })
-      .state('tab.chat-detail', {
-        url: '/chats/:chatId',
-        views: {
-          'tab-chats': {
-            templateUrl: 'templates/chat-detail.html',
-            controller: 'ChatDetailCtrl'
-          }
-        }
-      })
-
       .state('tab.study', {
         url: '/study',
         views: {
@@ -114,6 +126,12 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
             controller: 'SNSCtrl'
           }
         }
+      })
+
+      .state('userprofile', {
+        url: '/userprofile/:userid',
+        templateUrl: 'templates/userprofile.html',
+        controller: 'UserProfileCtrl'
       })
       .state('mainguide', {
         url: '/mainguide',
@@ -160,11 +178,6 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
         url: '/talkmain',
         templateUrl: 'templates/guide/talk_main.html',
         controller: 'TalkMainCtrl'
-      })
-      .state('userprofile', {
-        url: '/userprofile/:userid',
-        templateUrl: 'templates/userprofile.html',
-        controller: 'UserProfileCtrl'
       });
     $urlRouterProvider.otherwise('/versioncheck');
   });
