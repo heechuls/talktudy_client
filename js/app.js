@@ -27,12 +27,14 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
           var payload = notification.payload;
           console.log("Push Received : ");
           console.log(notification, payload);
-
+          alert(notification.toString());
+          var code = "";
           if(ionic.Platform.isIOS()){
-              var code = notification["_raw"]["additionalData"]["code"];
-              var message = notification["_raw"]["message"];
-              var body = notification["_raw"]["additionalData"]["body"];
-              $rootScope.$broadcast("onNotification", {code : code, message : message, body : body});
+              var args = { code : notification["_raw"]["additionalData"]["code"], 
+                                                      message : notification["_raw"]["message"], 
+                                                      body : notification["_raw"]["additionalData"]["body"]};
+              $rootScope.$broadcast("onNotification", args);
+            markNotification(args["code"], args);        
           }
           else {
 
@@ -61,7 +63,15 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
         push.saveToken(token);  // persist the token in the Ionic Platform
         MyProfile.token = token;
       });
-
+      function markNotification(code, args){
+        if(MyProfile.isLoggedIn == false){
+/*          if(code == "STUDY_PARTICIPATION")
+            GLOBALS.isStudyConfirmReceived = true;
+          else if(code == "PHONETALK_PARTICIPATION")
+            GLOBALS.isPhoneTalkConfirmReceived = true; */
+            GLOBALS.ReceivedNotification.put(args);
+        }
+      }
       //if none of the above states are matched, use this as the fallback
     });
   })
@@ -79,7 +89,7 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
       .state('tab', {
         url: '/tab',
         abstract: true,
-        templateUrl: 'templates/tabs.html'
+        templateUrl: 'templates/tabs/tabs.html'
       })
 
       // Each tab has its own nav history stack:
@@ -88,7 +98,7 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
         url: '/profile',
         views: {
           'tab-profile': {
-            templateUrl: 'templates/tab-profile.html',
+            templateUrl: 'templates/tabs/tab-profile.html',
             controller: 'ProfileCtrl'
           }
         }
@@ -97,7 +107,7 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
         url: '/activities',
         views: {
           'tab-activities': {
-            templateUrl: 'templates/tab-activities.html',
+            templateUrl: 'templates/tabs/tab-activities.html',
             controller: 'ActivityCtrl'
           }
         }
@@ -106,7 +116,7 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
         url: '/study',
         views: {
           'tab-study': {
-            templateUrl: 'templates/tab-study.html',
+            templateUrl: 'templates/tabs/tab-study.html',
             controller: 'StudyCtrl'
           }
         }
@@ -115,7 +125,7 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
       url: '/joiner',
       views: {
         'tab-study': {
-          templateUrl: 'templates/admin-joiner.html',
+          templateUrl: 'templates/general/admin-joiner.html',
           controller: 'JoinerListCtrl'
         }
       }
@@ -133,7 +143,7 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
         url: '/sns',
         views: {
           'tab-sns': {
-            templateUrl: 'templates/tab-sns2.html',
+            templateUrl: 'templates/tabs/tab-sns2.html',
             controller: 'SNSCtrl2'
           }
         }
@@ -142,7 +152,7 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
         url: '/userprofile/:userid',
         views: {
           'tab-sns': {
-            templateUrl: 'templates/userprofile.html',
+            templateUrl: 'templates/general/userprofile.html',
             controller: 'UserProfileCtrl'
           }
         }
@@ -155,12 +165,12 @@ angular.module('starter', ['ionic', 'ionic.service.core', 'starter.controllers',
 
       .state('login', {
         url: '/login',
-        templateUrl: 'templates/login.html',
+        templateUrl: 'templates/general/login.html',
         controller: 'LoginCtrl'
       })
       .state('versioncheck', {
         url: '/versioncheck',
-        templateUrl: 'templates/versioncheck.html',
+        templateUrl: 'templates/general/versioncheck.html',
         controller: 'VersionCheckCtrl'
       })
       .state('talkguide1', {
